@@ -1,5 +1,4 @@
 const express = require("express");
-const joi = require("joi");
 const bodyParser = require("body-parser");
 const users = require("./users").users;
 var currUsers = [];
@@ -42,6 +41,10 @@ app.get('/:id',(req,res)=>{
 })
 
 // To delete the user with given id
+// req format
+// {
+//     "id": integer,
+// }
 app.post('/delete',(req,res)=>{
     const id = req.body.id;
     console.log(id);
@@ -58,15 +61,32 @@ app.post('/delete',(req,res)=>{
 })
 
 // To add the new user
+// req format
+// {
+//     "id": integer,
+//     "login": string,
+//     "password": string,
+//     "age": integer,
+//     "isDeleted": boolean
+// }
 app.post('/add',(req,res)=>{
     const data = req.body;
-    console.log(data);
-    users.push(data);
-    findAvailabeUsers();
-    res.json(currUsers);
+    let alredyExist = isExist(data.id);
+    if(!alredyExist){
+        users.push(data);
+        findAvailabeUsers();
+        res.json(currUsers);
+    }else{
+        res.send(`User with id = ${data.id} alredy exists!`);
+    }
 })
 
-// to get auto suggested list with given substring and size equal to the limit provided
+// To get auto suggested list with given substring and size equal to the limit provided
+// req format
+// {
+//     "substring": string,
+//     "limit": integer,
+// }
 app.post('/getAutoSuggest',(req,res)=>{
     const data = req.body;
     const substring = data.substring;
@@ -83,7 +103,15 @@ app.post('/getAutoSuggest',(req,res)=>{
     res.json(list);     
 })
 
-// to replace the users data
+// To replace the users data
+// req format
+// {
+//     "id": integer,
+//     "login": string,
+//     "password": string,
+//     "age": integer,
+//     "isDeleted": boolean
+// }
 app.put('/put',(req,res)=>{
     const data = req.body;
     var flag = false;
@@ -114,9 +142,19 @@ function findAvailabeUsers(){
         }
     }
 }
-    
-// Start server
 
+// To check whether the user is alredy exist or not
+
+function isExist(id){
+    for (let ind = 0; ind < users.length; ind++) {
+        const element = users[ind];
+        if(element.id == id){
+            return true;
+        }
+    }
+    return false;
+}
+// Start server
 app.listen(PORT_NO,()=>{
     console.log(`Server is running on port - ${PORT_NO}`);
 })
